@@ -100,6 +100,19 @@ class Vkontakte
         return json_decode($res->getBody(), true);
     }
 
+    public function getSslPage($url) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_REFERER, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+
     /**
      * @param string $method
      * @param mixed $parameters
@@ -111,7 +124,7 @@ class Vkontakte
         if (is_array($parameters)) $parameters = http_build_query($parameters);
         $queryString = "/method/$method?$parameters&access_token={$this->accessToken}";
         $querySig = md5($queryString . $this->accessSecret);
-        return json_decode(file_get_contents(
+        return json_decode($this->getSslPage(
             "https://api.vk.com{$queryString}&sig=$querySig"
         ));
         // return json_decode(file_get_contents(
