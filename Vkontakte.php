@@ -268,14 +268,14 @@ class Vkontakte
         $host = parse_url($uri);
         $host = $host['host'];
         $client->setHeaders(array(
-            'Accept' =>	'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Encoding' => 'gzip, deflate',
             'Accept-Language' => 'en-US,en;q=0.5',
-            'Connection' =>	'keep-alive',
+            'Connection' => 'keep-alive',
             'Host' => $host,
             'Referer' => 'http://vk.com/login?act=mobile',
-            'User-Agent' =>	'Mozilla/5.0 (Windows NT 6.1; rv:16.0) Gecko/20100101 Firefox/16.0 FirePHP/0.7.1',
-            'x-insight'	=> 'activate'
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 6.1; rv:16.0) Gecko/20100101 Firefox/16.0 FirePHP/0.7.1',
+            'x-insight' => 'activate'
         ));
 
         return $client;
@@ -293,11 +293,20 @@ class Vkontakte
 
         foreach ($groups as $group) {
             $this->groupId = $group;
-            
+
             if (!empty($images)){
                 $uploads = array();
                 foreach ($images as $image){
-                    $uploads[] = $this->createPhotoAttachment($image);
+                    preg_match('/photo.*?$/i', $image, $matches);
+                    if (isset($matches[0]) && strpos($image, "vk.com/")!==false)
+                    {   
+                        $uploads[] = $matches[0];
+                    }
+                    else
+                    {
+                        $uploads[] = $this->createPhotoAttachment($image);
+                    }
+                        
                 }
                 $chunks = array_chunk($uploads, 10);//разбиваем картинки по 10 штук - ограничение VK
                 foreach ($chunks as $chunk){

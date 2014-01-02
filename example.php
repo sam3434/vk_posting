@@ -9,7 +9,8 @@ $message = "Текст сообщения";               //Текст сооб�
 */
 $images = array(        
     'http://company.yandex.ru/i/kr7.jpg', 
-    'http://company.yandex.ru/i/datacenters/_MG_3279.jpg'
+    'http://company.yandex.ru/i/datacenters/_MG_3279.jpg',
+    'http://vk.com/photo7081630_316613435',
 );  
 
 $application_id = '*******';    //ID приложения 
