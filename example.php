@@ -13,10 +13,10 @@ $images = array(
     'http://vk.com/photo7081630_316613435',
 );  
 
-$application_id = '*******';    //ID приложения 
-$secret_application_key = '************';   //Защищенный ключ
+$application_id = '***************';    //ID приложения 
+$secret_application_key = '***************';   //Защищенный ключ
 $login_or_email = 'sam3434@mail.ru';                //логин или email вконтакте
-$vk_password = '************';                    //пароль вконтакте
+$vk_password = '***************';                   //пароль вконтакте
 
 $public = new Vkontakte($application_id, $secret_application_key, $login_or_email, $vk_password);
 $public->vkrepost($groups, $message, $images);

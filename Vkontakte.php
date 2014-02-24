@@ -175,7 +175,7 @@ class Vkontakte
      * @param string $file relative file path
      * @return mixed
      */
-    public function createPhotoAttachment($file)
+    public function createPhotoAttachment($file, $b_files = false)
     {
         $result = $this->callMethod('photos.getWallUploadServer', array(
             'gid' => $this->groupId
@@ -188,14 +188,21 @@ class Vkontakte
         // curl_setopt($ch, CURLOPT_POSTFIELDS, array(
         //     'photo' => '@' . getcwd() . '/' . $file
         // ));
-        $imgdata = file_get_contents($file);
-        $imgformat = end(explode('.', $file));
-        $imgfilename = __DIR__ . '/' . rand(199122, 1992314) . '.' . $imgformat;
-        $this->photo_files[] = $imgfilename;
-        $imghandle = fopen($imgfilename, 'w');
-        fwrite($imghandle, $imgdata);
-        fclose($imghandle);
-
+        if (!$b_files)
+        {
+            $imgdata = file_get_contents($file);
+            $imgformat = end(explode('.', $file));
+            $imgfilename = __DIR__ . '/' . rand(199122, 1992314) . '.' . $imgformat;
+            $this->photo_files[] = $imgfilename;
+            $imghandle = fopen($imgfilename, 'w');
+            fwrite($imghandle, $imgdata);
+            fclose($imghandle);
+        }
+        else
+        {
+            $imgfilename = $file;
+        }
+        
         curl_setopt($ch, CURLOPT_POSTFIELDS, array(
             'photo' => '@' . $imgfilename . ';type=image/' . $imgformat
         ));
@@ -281,7 +288,7 @@ class Vkontakte
         return $client;
     }
 
-    function vkrepost($groups, $message, $images = null){
+    function vkrepost($groups, $message, $images = null, $files = null){
                 
         $this->login();
 
@@ -293,25 +300,32 @@ class Vkontakte
 
         foreach ($groups as $group) {
             $this->groupId = $group;
-
-            if (!empty($images)){
+            if (!empty($images) || !empty($files)){
                 $uploads = array();
-                foreach ($images as $image){
-                    preg_match('/photo.*?$/i', $image, $matches);
-                    if (isset($matches[0]) && strpos($image, "vk.com/")!==false)
-                    {   
-                        $uploads[] = $matches[0];
+                if (!empty($images)){
+                    foreach ($images as $image){
+                        preg_match('/photo.*?$/i', $image, $matches);
+                        if (isset($matches[0]) && strpos($image, "vk.com/")!==false)
+                        {   
+                            $uploads[] = $matches[0];
+                        }
+                        else
+                        {
+                            $uploads[] = $this->createPhotoAttachment($image);
+                        }                        
                     }
-                    else
-                    {
-                        $uploads[] = $this->createPhotoAttachment($image);
-                    }
-                        
                 }
+                if (!empty($files))
+                {
+                    foreach ($files as $file){
+                        $uploads[] = $this->createPhotoAttachment($file, true);
+                    }    
+                }
+                
                 $chunks = array_chunk($uploads, 10);//разбиваем картинки по 10 штук - ограничение VK
                 foreach ($chunks as $chunk){
                     $attachString = join(',', $chunk);
-                    print_r($this->wallPostAttachment($attachString, $message));
+                    $this->wallPostAttachment($attachString, $message);
                 }
             }
             else{
