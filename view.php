@@ -36,10 +36,23 @@
 		$flag = false;
 	}
 
+	if (isset($_POST['message']) && $_POST['message']!="")
+	{
+		$_SESSION['message'] = $_POST['message'];
+	}
+	if (isset($_POST['groups_id']) && $_POST['groups_id']!="")
+	{
+		$_SESSION['groups_id'] = $_POST['groups_id'];
+	}
+	if (isset($_POST['links']) && $_POST['links']!="")
+	{
+		$_SESSION['links'] = implode("||", $_POST['links']);
+	}
+
 	if ($flag)
 	{
 		$message = $_POST['message'];
-		$groups_id = $_POST['groups_id'];
+		$groups_id = trim($_POST['groups_id']);
 		$groups = explode(",", $groups_id);
  
 		$images = array();
@@ -84,6 +97,19 @@
 		$vk_password = $_SESSION['vk_password'];
 	else
 		$vk_password = '';
+
+	if (isset($_SESSION['message']))
+		$message = $_SESSION['message'];
+	else
+		$message = '';
+	if (isset($_SESSION['groups_id']))
+		$groups_id = $_SESSION['groups_id'];
+	else
+		$groups_id = '';
+	if (isset($_SESSION['links']))
+		$links = explode("||", $_SESSION['links']);
+	else
+		$links = array();
 
 
  ?>
@@ -148,7 +174,7 @@
 				</label>
 			</td>
 			<td> 
-				<input type="text" id="groups_id" name="groups_id" size="150">
+				<textarea name="groups_id" id="groups_id" cols="100" rows="6"><?= trim($groups_id) ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -156,7 +182,7 @@
 				<label for="message">Текст сообщения</label>
 			</td>
 			<td> 
-				<textarea name="message" id="message" cols="50" rows="10"></textarea>
+				<textarea name="message" id="message" cols="50" rows="10"><?= $message ?></textarea>
 			</td>
 		</tr>
 	</table>
@@ -165,46 +191,23 @@
 			<th>Ссылка картинок</th>
 			<th>Картинки с компьютера</th>
 		</tr>
-		<tr>
-			<td><input type="text" id="links1" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer1" name="files[]"></td>
-		</tr>
-		<tr>
-			<td><input type="text" id="links2" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer2" name="files[]"></td>
-		</tr>
-		<tr>
-			<td><input type="text" id="links3" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer3" name="files[]"></td>
-		</tr>
-		<tr>
-			<td><input type="text" id="links4" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer4" name="files[]"></td>
-		</tr>
-		<tr>
-			<td><input type="text" id="links5" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer5" name="files[]"></td>
-		</tr>
-		<tr>
-			<td><input type="text" id="links6" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer6" name="files[]"></td>
-		</tr>
-		<tr>
-			<td><input type="text" id="links7" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer7" name="files[]"></td>
-		</tr>
-		<tr>
-			<td><input type="text" id="links8" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer8" name="files[]"></td>
-		</tr>
-		<tr>
-			<td><input type="text" id="links9" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer9" name="files[]"></td>
-		</tr>
-		<tr>
-			<td><input type="text" id="links10" size="50" name="links[]"></td>
-			<td><input type="file" id="from_computer10" name="files[]"></td>
-		</tr>
+		<?
+			for ($i=1; $i <= 10; $i++) { 
+				if (isset($links[$i-1]))
+					$link_value = $links[$i-1];
+				else
+					$link_value = '';
+				echo "<tr>";
+					echo "<td>";
+						echo "<input type='text' id='links{$i}' size='50' name='links[]' value='$link_value'>";
+					echo "</td>";
+					echo "<td>";
+						echo "<input type='file' id='from_computer{$i}' name='files[]'>";
+					echo "</td>";
+				echo "</tr>";
+			}
+
+		 ?>
 	</table>
 	
 	<input type="submit" value="Отправить">
