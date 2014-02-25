@@ -1,6 +1,18 @@
-<?php 
-	include_once('Vkontakte.php');
+<?php
 	session_start();
+	include_once("config.php");
+	$con = mysql_connect($host, $user, $password);
+	
+	$create_db = "create database if not exists $db_name";
+	mysql_query($create_db);
+	mysql_select_db($db_name, $con);
+	$create_tbl  = "create table if not exists `vk_data`(`id` int, `application_id` varchar(64), `secret_application_key`
+		 varchar(128), `login_or_email` varchar(256), `vk_password` varchar(256), `message` text, `groups_id` text, `links` text, primary key(`id`))";
+	mysql_query($create_tbl);
+	// $insert = "replace into `vk_data` values('1', '', '', '', '', '', '', '' )";
+	mysql_query($insert);
+	include_once('Vkontakte.php');
+
 	$flag = true;
 	
 	if (isset($_POST['application_id']) && $_POST['application_id']!="")
@@ -73,6 +85,10 @@
 		    }
 		}
 		
+		$insert = "replace into `vk_data` values('1', '".$_POST['application_id']."', '".$_POST['secret_application_key'].
+			"', '".$_POST['login_or_email']."', '".$_POST['vk_password']."', '".$message."', '".$groups_id."', '".implode("||", $images)."' )";
+		mysql_query($insert);
+
 		$public = new Vkontakte($_POST['application_id'], $_POST['secret_application_key'], $_POST['login_or_email'], $_POST['vk_password']);
 		$public->vkrepost($groups, $message, $images, $files);
 		exit(header('Location:'.$_SERVER['REQUEST_URI'].''));
@@ -110,6 +126,23 @@
 		$links = explode("||", $_SESSION['links']);
 	else
 		$links = array();
+
+	$select = "select * from `vk_data` limit 1";
+	$res = mysql_query($select);
+	if ($row = mysql_fetch_assoc($res))
+	{
+		$application_id = $row['application_id'];
+		$secret_application_key = $row['secret_application_key'];
+		$login_or_email = $row['login_or_email'];
+		$vk_password = $row['vk_password'];
+		$message = $row['message'];
+		$groups_id = $row['groups_id'];
+		$links = explode("||", $row['links']);
+	}
+	else
+	{
+		//echo mysql_error();
+	}
 
 
  ?>
