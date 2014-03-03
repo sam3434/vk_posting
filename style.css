@@ -1,0 +1,32 @@
+input[type="text"]
+	{
+		padding: 5px;
+		-webkit-border-radius: 5px;
+		-moz-border-radius: 5px;
+		border-radius: 5px;
+	}
+	html{
+		font-size: 18px;
+	}
+
+	.posts, .posts, #save{
+		color: red;
+		cursor: pointer;
+	}
+
+	.posts a{
+		text-decoration: none;
+		display: inline-block;
+		padding: 5px;
+		background-color: white;
+		min-width: 100px;
+		
+	}
+
+	.posts a:hover{
+		background-color: #a34;
+	}
+
+	.posts span{
+		display: inline-block;
+	}

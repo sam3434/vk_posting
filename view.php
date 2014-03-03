@@ -1,16 +1,6 @@
 <?php
 	session_start();
-	include_once("config.php");
-	$con = mysql_connect($host, $user, $password);
 	
-	$create_db = "create database if not exists $db_name";
-	mysql_query($create_db);
-	mysql_select_db($db_name, $con);
-	$create_tbl  = "create table if not exists `vk_data`(`id` int, `application_id` varchar(64), `secret_application_key`
-		 varchar(128), `login_or_email` varchar(256), `vk_password` varchar(256), `message` text, `groups_id` text, `links` text, primary key(`id`))";
-	mysql_query($create_tbl);
-	// $insert = "replace into `vk_data` values('1', '', '', '', '', '', '', '' )";
-	mysql_query($insert);
 	include_once('Vkontakte.php');
 
 	$flag = true;
@@ -84,10 +74,27 @@
 		        $files[] = $uploadfile;
 		    }
 		}
-		
-		$insert = "replace into `vk_data` values('1', '".$_POST['application_id']."', '".$_POST['secret_application_key'].
-			"', '".$_POST['login_or_email']."', '".$_POST['vk_password']."', '".$message."', '".$groups_id."', '".implode("||", $images)."' )";
-		mysql_query($insert);
+
+		$in_file = array();
+		if (file_exists("data.txt"))
+		{
+			$str = file_get_contents("data.txt");
+			$in_file = unserialize($str);
+		}
+		$insert_value = array("application_id" => $_POST['application_id'],
+							"secret_application_key" => $_POST['secret_application_key'],
+							"login_or_email" => $_POST['login_or_email'],
+							"vk_password" => $_POST['vk_password'],
+							"message" => $message,
+							"groups_id" => $groups_id,
+							"images" => $images,
+							"name" => ""
+						);
+		if (!in_array($insert_value, $in_file))
+		{
+			$in_file[] = $insert_value;
+		}
+		file_put_contents("data.txt", serialize($in_file));
 
 		$public = new Vkontakte($_POST['application_id'], $_POST['secret_application_key'], $_POST['login_or_email'], $_POST['vk_password']);
 		$public->vkrepost($groups, $message, $images, $files);
@@ -127,44 +134,131 @@
 	else
 		$links = array();
 
-	$select = "select * from `vk_data` limit 1";
-	$res = mysql_query($select);
-	if ($row = mysql_fetch_assoc($res))
+	if (isset($_GET['page']))
 	{
-		$application_id = $row['application_id'];
-		$secret_application_key = $row['secret_application_key'];
-		$login_or_email = $row['login_or_email'];
-		$vk_password = $row['vk_password'];
-		$message = $row['message'];
-		$groups_id = $row['groups_id'];
-		$links = explode("||", $row['links']);
+		$page = intval($_GET['page']);
 	}
 	else
 	{
-		//echo mysql_error();
+		$page = 0;
+	}
+	$in_file = array();
+	if (file_exists("data.txt"))
+	{
+		$in_file = unserialize(file_get_contents("data.txt"));
+		$in_file = array_values($in_file);
+		{
+			if (isset($in_file[$page]))
+			{
+				$application_id = $in_file[$page]['application_id'];
+				$secret_application_key = $in_file[$page]['secret_application_key'];
+				$login_or_email = $in_file[$page]['login_or_email'];
+				$vk_password = $in_file[$page]['vk_password'];
+				$message = $in_file[$page]['message'];
+				$groups_id = $in_file[$page]['groups_id'];
+				$links = $in_file[$page]['images'];
+			}			
+		}
 	}
 
-
+	
  ?>
 <!doctype html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<title>Постинг ВК</title>
-	<style>
-		input[type="text"]
-		{
-			padding: 5px;
-			-webkit-border-radius: 5px;
-			-moz-border-radius: 5px;
-			border-radius: 5px;
-		}
-		html{
-			font-size: 18px;
-		}
-	</style>
+	<link rel="stylesheet" href="style.css">
+	<script src="jquery-1.11.0.min.js"></script>
+
+	<script>
+		jQuery(document).ready(function($) {
+			$('#show_memory').on('click', ".posts span", function(event) {
+				if (confirm("Вы уверены что хотите удалить "+$.trim($(this).prev().html())))
+				{
+					$.ajax({
+					      url: 'post_ajax.php',
+					      type: 'post',
+					      dataType: "text",
+					      data: {delete_post: $(this).attr("id")},
+					      success: function (data) {
+					      	$('#show_memory').html(data)
+					      },
+					      error: function(er){
+					            alert("ajax error")
+					            //alert(er)
+					      },
+					});
+				}
+			});	
+
+			$('#save').on('click', function(event) {
+				var ans = prompt("Введите название ссылки")
+				var links = []
+				for (var i = 1; i <= 10; i++) {
+					if ($('#links'+i).val()!="")
+					{
+						links.push($('#links'+i).val())
+					}
+				}
+
+				if (ans!=null)
+				{
+					$.ajax({
+					      url: 'post_ajax.php',
+					      type: 'post',
+					      dataType: "text",
+					      data: {save_post: true, application_id: $('#application_id').val()
+					      , secret_application_key: $('#secret_application_key').val(), login_or_email: $('#login_or_email').val()
+					      , vk_password: $('#vk_password').val(), groups_id: $('#groups_id').val()
+					      , message: $('#message').val(), name: ans, images: links },
+					      success: function (data) {
+					        $('#show_memory').html(data)
+					      },
+					      error: function(er){
+					            alert("ajax error save")
+					            //alert(er)
+					      },
+					});	
+				}				
+				
+			});	
+		});
+
+		
+	</script>
 </head>
 <body>
+	<div id="show_memory">
+		<?	for ($i=0; $i < count($in_file); $i++) :	?>
+			<div class="posts">
+				<? if ($page==$i): ?>
+					<b>
+				<? endif; ?>
+				<a href="<?= $_SERVER['PHP_SELF'].'?page='.$i ?>">
+					<? 
+						if ($in_file[$i]["name"]==""):
+					 ?>
+						<?= $i+1  ?>-ый пост
+					<? 
+						else:
+					 ?>
+						<?= $in_file[$i]["name"] ?>
+					<? endif; ?>
+
+				</a>
+				<? if ($page==$i): ?>
+					</b>
+				<? endif; ?>
+				<span id="<?= $i ?>">X</span>
+			</div>	
+			
+		<?	endfor; ?>	
+	</div>
+	<div id="save">
+		Сохранить
+	</div>
+	
 	<form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" enctype="multipart/form-data">
 	<table>
 		<tr>
