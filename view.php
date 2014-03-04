@@ -1,6 +1,15 @@
 <?php
 	session_start();
-	
+
+	function in_array_out_names($insert_value, $in_file)
+	{
+		unset($insert_value["name"]);
+		for ($i=0; $i < count($in_file); $i++) { 
+			unset($in_file[$i]["name"]);
+		}
+		return in_array($insert_value, $in_file);
+	}
+
 	include_once('Vkontakte.php');
 
 	$flag = true;
@@ -90,15 +99,28 @@
 							"images" => $images,
 							"name" => ""
 						);
-		if (!in_array($insert_value, $in_file))
+		$inserted = false;
+		if (!in_array_out_names($insert_value, $in_file))
 		{
 			$in_file[] = $insert_value;
+			$inserted = true;
 		}
 		file_put_contents("data.txt", serialize($in_file));
+		if ($inserted)
+		{
+			$size = count($in_file) - 1;			
+		}
+		else
+		{
+			if (isset($_POST["page"]))
+				$size = $_POST["page"];
+			else
+				$size = 0;
+		}
 
 		$public = new Vkontakte($_POST['application_id'], $_POST['secret_application_key'], $_POST['login_or_email'], $_POST['vk_password']);
 		$public->vkrepost($groups, $message, $images, $files);
-		exit(header('Location:'.$_SERVER['REQUEST_URI'].''));
+		exit(header('Location:'.$_SERVER['REQUEST_URI'].'?page='.$size));
 	}
 
 	if (isset($_SESSION['application_id']))
@@ -173,8 +195,18 @@
 
 	<script>
 		jQuery(document).ready(function($) {
+
 			$('#show_memory').on('click', ".posts span", function(event) {
-				if (confirm("Вы уверены что хотите удалить "+$.trim($(this).prev().html())))
+				var name = ""
+				if ($(this).prev().is("b"))
+				{
+					name = $.trim($(this).prev().children().html())
+				}
+				else
+				{
+					name = $.trim($(this).prev().html())
+				}
+				if (confirm("Вы уверены что хотите удалить "+name))
 				{
 					$.ajax({
 					      url: 'post_ajax.php',
@@ -229,6 +261,7 @@
 	</script>
 </head>
 <body>
+	
 	<div id="show_memory">
 		<?	for ($i=0; $i < count($in_file); $i++) :	?>
 			<div class="posts">
@@ -260,6 +293,7 @@
 	</div>
 	
 	<form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="page" value="<? if (isset($_GET['page'])) echo intval($_GET['page']); else echo 0; ?>">
 	<table>
 		<tr>
 			<td> 

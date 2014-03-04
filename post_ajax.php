@@ -1,4 +1,14 @@
 <?php
+
+	function in_array_out_names($insert_value, $in_file)
+	{
+		unset($insert_value["name"]);
+		for ($i=0; $i < count($in_file); $i++) { 
+			unset($in_file[$i]["name"]);
+		}
+		return in_array($insert_value, $in_file);
+	}
+
 	if (isset($_POST['delete_post']))
 		$del = intval($_POST['delete_post']);
 	if (isset($_POST['delete_post']))
@@ -30,7 +40,7 @@
 							"images" => $_POST['images'],
 							"name" => $_POST['name']
 						);
-		if (!in_array($insert_value, $in_file))
+		if (!in_array_out_names($insert_value, $in_file))
 		{
 			$in_file[] = $insert_value;
 		}
