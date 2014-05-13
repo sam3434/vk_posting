@@ -64,7 +64,9 @@ class Vkontakte
         try {
             $res = $client->request($client::POST);
         } catch (Exception $exc) {
-            debug($client->getCookieJar());
+            echo "We catch some exception";
+            print_r($client->getCookieJar());
+            //debug($client->getCookieJar());
             echo $exc->getTraceAsString();
         }
     }
